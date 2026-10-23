@@ -1,0 +1,15 @@
+// Assertions for the handshake controller.
+h1_req_ack:     assert property (@(posedge clk) $rose(req) |-> ##[1:3] $rose(ack));
+h2_ack_done:    assert property (@(posedge clk) $rose(ack) |-> ##[1:4] $rose(done));
+// Cannot fail: the FSM stays in ERR (err = 1) for at least one more cycle.
+h3_err_holds:   assert property (@(posedge clk) $rose(err) |=> err);
+h4_err_twice:   assert property (@(posedge clk) $rose(err) |-> ##2 err);
+h5_busy_done:   assert property (@(posedge clk) $fell(busy) |-> ##[0:1] $rose(done));
+h6_gnt_busy:    assert property (@(posedge clk) $rose(gnt) |-> ##[1:2] $stable(busy));
+// Cannot fail: the DONE cycle right after the rise always has busy = 0.
+h7_done_idle:   assert property (@(posedge clk) $rose(done) |-> ##[1:3] !busy);
+h8_abort_err:   assert property (@(posedge clk) $rose(abort) |-> ##1 err);
+// Dominated by h2_ack_done.
+h9_ack_done2:   assert property (@(posedge clk) $rose(ack) |-> ##[1:2] $rose(done));
+// Fails when IDLE -> WAIT is followed by an abort, which raises err again.
+h10_err_clear:  assert property (@(posedge clk) $fell(err) |-> ##1 !err);
